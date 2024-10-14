@@ -13,6 +13,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//primary key is defined by "@id" // @default
+//@id or @@id for a single- or multi-field primary key constraint (max one per model)
 model Employee {
   id   Int    @id @default(autoincrement())
   name String

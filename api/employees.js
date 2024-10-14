@@ -5,37 +5,38 @@ module.exports = router;
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
   try {
     const employees = await prisma.employee.findMany(); 
     res.json(employees);
-  } catch (error) {
-    console.error("Error fetching employees:", error);
-    res.status(500).json({ error: "Internal server error" });
+  } catch (e) {
+    next(e);
   }
 });
 
-router.get("/random", async (req, res) => {
+router.post("/", async (req, res, next) => {
+  const { name } = req.body;
+  if (!name) {
+    return next({ status: 400, message: "Employee name must be provided..." });
+  }
+
   try {
-    const totalEmployees = await prisma.employee.count();
-    const randomEmployee = await prisma.employee.findFirst({
-      skip: Math.floor(Math.random() * totalEmployees),
+    const employee = await prisma.employee.create({ 
+      data: { name } 
     });
-    res.json(randomEmployee);
-  } catch (error) {
-    console.error("Error fetching random employee:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(201).json(employee);
+  } catch (e) {
+    next(e);
   }
 });
 
 router.get("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
-    console.log(id);
     const randomEmployee = await prisma.employee.findFirst({
-      skip: +id,
+     skip: +id,
     });
-    
+
     if(randomEmployee) {
       res.json(randomEmployee);
     } else {
@@ -47,7 +48,55 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-router.post("/", (req, res, next) => {
-    res.json("employees call DB by POST");
+router.put("/:id", async (req, res, next) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  console.log(id);
+  console.log(name);
+  
+  if (!name) {
+    return next({ status: 400, message: "A new name must be provided." });
+  }
+  
+  try {
+    const employee = await prisma.employee.findUnique({ where: { id: +id } });
+
+    if (!employee) {
+      return next({
+        status: 404,
+        message: `Employee with id ${id} does not exist.`,
+      });
+    }
+
+    const updatedEmployee = await prisma.employee.update({
+      where: { id: +id },
+      data: { name },
+    });
+    res.json(updatedEmployee);  
+  } catch (e) {
+    console.error("Error updating employee by ID:", e);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
+
+router.delete("/:id", async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    const employee = await prisma.employee.findUnique({ where: { id: +id } });
+    if (!employee) {
+      return next({
+        status: 404,
+        message: `Employee with id ${id} does not exist.`,
+      });
+    }
+
+    await prisma.employee.delete({ where: { id: +id } });
+    res.sendStatus(204);
+  } catch (e) {
+    console.error("Error deleting employee by ID:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});

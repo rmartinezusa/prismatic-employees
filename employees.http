@@ -7,25 +7,41 @@ GET {{host}}
 ### Get all employees
 GET {{host}}/employees
 
-### Get specific employee
-GET {{host}}/employees/2
-
-### Get nonexistent employee
-GET {{host}}/employees/123
-
-### Get random employee
-GET {{host}}/employees/random
-
-### Post new employee 
+### Post a new employee
 POST {{host}}/employees
 Content-Type: application/json
 
 {
-    "name": "John Doe"
+    "name": "John Doe new name post"
 }
+
+### Post no name
+POST {{host}}/employees
+Content-Type: application/json
+
+{
+    "name": null
+}
+
+### Get specific employee
+GET {{host}}/employees/2
+
+
+### Get nonexistent employee
+GET {{host}}/employees/123
 
 
 ### Bad request Post new employee 
 POST {{host}}/employees
 Content-Type: application/json
 
+### PUT update name
+PUT {{host}}/employees/14 
+Content-Type: application/json
+
+{
+    "name": "update name PUT"
+}
+
+### DELETE
+DELETE {{host}}/employees/14 
